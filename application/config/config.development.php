@@ -11,7 +11,7 @@
  * It's a little bit dirty to put this here, but who cares. For development purposes it's totally okay.
  */
 error_reporting(E_ALL);
-ini_set("display_errors", 0);
+ini_set("display_errors", 1);
 
 /**
  * Configuration for cookie security
