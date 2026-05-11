@@ -116,11 +116,13 @@ class LoginModel
             return false;
         }
 
-        // if user is not active (= has not verified account by verification mail)
+        // EMAIL VERIFICATION REMOVED: if user is not active (= has not verified account by verification mail)
+        /*
         if ($result->user_active != 1) {
             Session::add('feedback_negative', Text::get('FEEDBACK_ACCOUNT_NOT_ACTIVATED_YET'));
             return false;
         }
+        */
 
         // reset the user not found counter
         self::resetUserNotFoundCounter();
