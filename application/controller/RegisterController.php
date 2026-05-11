@@ -14,6 +14,8 @@ class RegisterController extends Controller
     public function __construct()
     {
         parent::__construct();
+        // ADMIN ONLY: Only admins can register new users
+        Auth::checkAdminAuthentication();
     }
 
     /**
@@ -22,11 +24,8 @@ class RegisterController extends Controller
      */
     public function index()
     {
-        if (LoginModel::isUserLoggedIn()) {
-            Redirect::home();
-        } else {
-            $this->View->render('register/index');
-        }
+        // ADMIN ONLY: Show register form for admins
+        $this->View->render('register/index');
     }
 
     /**
