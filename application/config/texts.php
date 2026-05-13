@@ -72,4 +72,6 @@ return array(
     "FEEDBACK_NOTE_DELETION_FAILED" => "Note deletion failed.",
     "FEEDBACK_COOKIE_INVALID" => "Your remember-me-cookie is invalid.",
     "FEEDBACK_COOKIE_LOGIN_SUCCESSFUL" => "You were successfully logged in via the remember-me-cookie.",
+    "FEEDBACK_USER_GROUP_CHANGE_SUCCESSFUL" => "Benutzergruppe wurde erfolgreich geändert.",
+    "FEEDBACK_USER_GROUP_SELF_CHANGE_DENIED" => "Du kannst deine eigene Admin-Gruppe nicht ändern.",
 );

@@ -20,6 +20,28 @@
 
         <!-- navigation -->
         <ul class="navigation">
+            <!-- Für alle Besucher (auch Gäste) -->
+            <li <?php if (View::checkForActiveController($filename, "user")) {
+                    echo ' class="active" ';
+                } ?>>
+                <a href="<?php echo Config::get('URL'); ?>user/listAll">Benutzerliste</a>
+            </li>
+
+            <!-- Nur für Admins (user_account_type = 7) -->
+            <?php if (Session::get('user_account_type') == 7) : ?>
+                <li <?php if (View::checkForActiveController($filename, "admin")) {
+                        echo ' class="active" ';
+                    } ?>>
+                    <a href="<?php echo Config::get('URL'); ?>admin">Admin</a>
+                    <ul class="navigation-submenu">
+                        <li <?php if (View::checkForActiveController($filename, "admin")) {
+                                echo ' class="active" ';
+                            } ?>>
+                            <a href="<?php echo Config::get('URL'); ?>admin/users">Benutzerverwaltung</a>
+                        </li>
+                    </ul>
+                </li>
+            <?php endif; ?>
             <li <?php if (View::checkForActiveController($filename, "index")) {
                     echo ' class="active" ';
                 } ?>>

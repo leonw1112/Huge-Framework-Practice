@@ -340,4 +340,75 @@ class UserModel
         // return one row (we only have one result or nothing)
         return $query->fetch();
     }
+        /**
+     * Alle Benutzer mit Gruppeninformationen laden
+     * JOIN auf user_groups um den Namen zu erhalten
+     */
+    public static function getAllUsersWithGroup()
+    {
+        $database = DatabaseFactory::getFactory()->getConnection();
+
+        $sql = "SELECT u.user_id, u.user_name, u.user_email, u.user_active, 
+                       u.user_deleted, u.user_account_type, u.user_has_avatar, 
+                       g.group_name
+                FROM users u
+                LEFT JOIN user_groups g ON u.user_account_type = g.group_id
+                ORDER BY u.user_id ASC";
+        $query = $database->prepare($sql);
+        $query->execute();
+
+        $all_users = array();
+
+        foreach ($query->fetchAll() as $user) {
+            // XSS-Filter auf alle Felder anwenden
+            array_walk_recursive($user, 'Filter::XSSFilter');
+
+            $all_users[$user->user_id] = new stdClass();
+            $all_users[$user->user_id]->user_id = $user->user_id;
+            $all_users[$user->user_id]->user_name = $user->user_name;
+            $all_users[$user->user_id]->user_email = $user->user_email;
+            $all_users[$user->user_id]->user_active = $user->user_active;
+            $all_users[$user->user_id]->user_deleted = $user->user_deleted;
+            $all_users[$user->user_id]->user_account_type = $user->user_account_type;
+            $all_users[$user->user_id]->group_name = $user->group_name;
+            $all_users[$user->user_id]->user_avatar_link = (Config::get('USE_GRAVATAR') 
+                ? AvatarModel::getGravatarLinkByEmail($user->user_email) 
+                : AvatarModel::getPublicAvatarFilePathOfUser($user->user_has_avatar, $user->user_id));
+        }
+
+        return $all_users;
+    }
+
+    /**
+     * Benutzergruppe aktualisieren (Admin-Funktion)
+     * Sicherheit: Admin darf seine eigene Gruppe nicht ändern
+     */
+    public static function updateUserGroup($user_id, $new_group_id)
+    {
+        $database = DatabaseFactory::getFactory()->getConnection();
+
+        // Eigenen Admin-Status nicht entfernen
+        if ($user_id == Session::get('user_id') && $new_group_id != 7) {
+            Session::add('feedback_negative', Text::get('FEEDBACK_USER_GROUP_SELF_CHANGE_DENIED'));
+            return false;
+        }
+
+        $sql = "UPDATE users 
+                SET user_account_type = :group_id 
+                WHERE user_id = :user_id 
+                LIMIT 1";
+        $query = $database->prepare($sql);
+        $query->execute(array(
+            ':group_id' => $new_group_id, 
+            ':user_id' => $user_id
+        ));
+
+        if ($query->rowCount() == 1) {
+            Session::add('feedback_positive', Text::get('FEEDBACK_USER_GROUP_CHANGE_SUCCESSFUL'));
+            return true;
+        }
+
+        Session::add('feedback_negative', Text::get('FEEDBACK_UNKNOWN_ERROR'));
+        return false;
+    }
 }

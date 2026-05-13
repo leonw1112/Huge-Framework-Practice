@@ -154,4 +154,15 @@ class UserController extends Controller
         else
             Redirect::to('user/changePassword');
     }
+
+    /**
+     * Öffentliche Ansicht: Alle Benutzer/Gruppen als Liste
+     * Keine Bearbeitung möglich – nur Ansicht
+     */
+    public function listAll()
+    {
+        $this->View->render('user/listAll', array(
+            'users' => UserModel::getAllUsersWithGroup()
+        ));
+    }
 }

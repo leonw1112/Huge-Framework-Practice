@@ -32,4 +32,40 @@ class AdminController extends Controller
 
         Redirect::to("admin");
     }
+
+     /**
+     * Admin-Ansicht: Alle Benutzer mit Gruppenauswahl anzeigen
+     */
+    public function users()
+    {
+        Auth::checkAdminAuthentication();
+
+        $this->View->render('admin/users', array(
+            'users' => UserModel::getAllUsersWithGroup(),
+            'groups' => UserGroupModel::getAllGroups()
+        ));
+    }
+
+    /**
+     * Admin-Aktion: Benutzergruppe ändern
+     */
+    public function updateUserGroup_action()
+    {
+        Auth::checkAdminAuthentication();
+
+        if (!Csrf::isTokenValid()) {
+            LoginModel::logout();
+            Redirect::home();
+            exit();
+        }
+
+        if (Request::post('user_id') && Request::post('group_id')) {
+            UserModel::updateUserGroup(
+                Request::post('user_id'),
+                Request::post('group_id')
+            );
+        }
+
+        Redirect::to('admin/users');
+    }
 }
