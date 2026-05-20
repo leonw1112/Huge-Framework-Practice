@@ -20,6 +20,7 @@
                     <td>User's email</td>
                     <td>Activated ?</td>
                     <td>Link to user's profile</td>
+                    <td>Chat with user</td>
                 </tr>
                 </thead>
                 <?php foreach ($this->users as $user) { ?>
@@ -36,7 +37,12 @@
                         <td>
                             <a href="<?= Config::get('URL') . 'profile/showProfile/' . $user->user_id; ?>">Profile</a>
                         </td>
-                    </tr>
+                        <td>
+                            <?php if (Session::userIsLoggedIn()) { ?>
+                                <a href="<?= Config::get('URL') . 'chat/index/' . $user->user_id; ?>">Chat</a>
+                            <?php } else { ?>
+                                <span class="inactive">Chat</span>
+                            <?php } ?>
                 <?php } ?>
             </table>
         </div>
