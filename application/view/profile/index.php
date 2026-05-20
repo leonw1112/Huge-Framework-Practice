@@ -21,6 +21,7 @@
                     <td>Activated ?</td>
                     <td>Link to user's profile</td>
                     <td>Chat with user</td>
+                    <td>Unread Messages</td>
                 </tr>
                 </thead>
                 <?php foreach ($this->users as $user) { ?>

@@ -39,7 +39,7 @@ class ChatController extends Controller
     public function sendMessage()
     {
         // Verify CSRF token
-        if (!Csrf::verifyToken(Request::post('csrf_token'))) {
+        if (!Csrf::isTokenValid(Request::post('csrf_token'))) {
             Redirect::to('chat/index/' . Request::post('recipient_id'));
         }
 
