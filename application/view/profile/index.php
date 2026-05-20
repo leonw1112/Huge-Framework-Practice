@@ -41,7 +41,7 @@
                             <?php if (Session::userIsLoggedIn()) { ?>
                                 <a href="<?= Config::get('URL') . 'chat/index/' . $user->user_id; ?>">Chat</a>
                             <?php } else { ?>
-                                <span class="inactive">Chat</span>
+                                <a href="<?= Config::get('URL'); ?>login/index">Login to chat</a>
                             <?php } ?>
                 <?php } ?>
             </table>
