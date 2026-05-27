@@ -25,10 +25,13 @@ class ChatController extends Controller
         // Get the other user's information
         $other_user = UserModel::getPublicProfileOfUser($user_id);
 
-        // Pass the user information to the view
+        // Get all messages between the logged-in user and the other user
+        $messages = ChatModel::getMessagesBetweenUsers(Session::get('user_id'), $user_id);
+
+        // Pass the user information and messages to the view
         $this->View->render('chat/index', array(
             'other_user' => $other_user,
-            'messages' => array() // Placeholder for messages - will be filled with database data later
+            'messages' => $messages
         ));
     }
 
@@ -51,8 +54,8 @@ class ChatController extends Controller
             Redirect::to('chat/index/' . $recipient_id);
         }
 
-        // Save the message (placeholder - needs ChatModel implementation)
-        // ChatModel::sendMessage(Session::get('user_id'), $recipient_id, $message_text);
+        // Save the message to the database
+        ChatModel::sendMessage(Session::get('user_id'), $recipient_id, $message_text);
 
         Redirect::to('chat/index/' . $recipient_id);
     }
