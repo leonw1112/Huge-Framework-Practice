@@ -18,9 +18,6 @@
                         </div>
                         <div class="chat-user-details">
                             <h2><?= $this->other_user->user_name; ?></h2>
-                            <p class="user-status <?= ($this->other_user->user_active == 1 ? 'online' : 'offline'); ?>">
-                                <?= ($this->other_user->user_active == 1 ? 'Online' : 'Offline'); ?>
-                            </p>
                         </div>
                     </div>
                     <div class="chat-actions">
@@ -137,20 +134,6 @@
     color: #333;
 }
 
-.user-status {
-    margin: 5px 0 0 0;
-    font-size: 12px;
-    color: #999;
-}
-
-.user-status.online {
-    color: #28a745;
-    font-weight: bold;
-}
-
-.user-status.offline {
-    color: #999;
-}
 
 .chat-actions {
     display: flex;
