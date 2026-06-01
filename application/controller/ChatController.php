@@ -25,6 +25,9 @@ class ChatController extends Controller
         // Get the other user's information
         $other_user = UserModel::getPublicProfileOfUser($user_id);
 
+        // Mark all messages from the other user as read
+        ChatModel::markMessagesAsRead($user_id, Session::get('user_id'));
+
         // Get all messages between the logged-in user and the other user
         $messages = ChatModel::getMessagesBetweenUsers(Session::get('user_id'), $user_id);
 
@@ -66,9 +69,11 @@ class ChatController extends Controller
     public function groupChats()
     {
         $group_chats = ChatModel::getUserGroupChats(Session::get('user_id'));
+        $unread_counts = ChatModel::getUnreadCountPerGroup(Session::get('user_id'));
 
         $this->View->render('chat/groupChats', array(
-            'group_chats' => $group_chats
+            'group_chats' => $group_chats,
+            'unread_counts' => $unread_counts
         ));
     }
 
@@ -82,6 +87,9 @@ class ChatController extends Controller
         if (!ChatModel::isGroupMember($group_chat_id, Session::get('user_id'))) {
             Redirect::to('chat/groupChats');
         }
+
+        // Mark all messages in this group as read for the current user
+        ChatModel::markGroupMessagesAsRead($group_chat_id, Session::get('user_id'));
 
         $group_chat = ChatModel::getGroupChatDetails($group_chat_id);
         $messages = ChatModel::getGroupChatMessages($group_chat_id);

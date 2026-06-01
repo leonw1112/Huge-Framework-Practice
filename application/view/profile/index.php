@@ -48,9 +48,14 @@
                             </td>
                             <td>
                                 <?php if (Session::userIsLoggedIn()) { ?>
-                                    <a href="<?= Config::get('URL') . 'chat/index/' . $user->user_id; ?>">Chat</a>
+                                    <div class="chat-link-wrapper">
+                                        <a href="<?= Config::get('URL') . 'chat/index/' . $user->user_id; ?>" class="btn-chat">💬 Chat</a>
+                                        <?php if (isset($this->unread_counts[$user->user_id]) && $this->unread_counts[$user->user_id] > 0) { ?>
+                                            <span class="chat-unread-badge"><?= $this->unread_counts[$user->user_id]; ?></span>
+                                        <?php } ?>
+                                    </div>
                                 <?php } else { ?>
-                                    <a href="<?= Config::get('URL'); ?>login/index">Login to chat</a>
+                                    <a href="<?= Config::get('URL'); ?>login/index" class="btn-chat">Login</a>
                                 <?php } ?>
                             </td>
                         </tr>
@@ -158,6 +163,42 @@
 
 .login-message a:hover {
     text-decoration: underline;
+}
+
+.chat-link-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.btn-chat {
+    display: inline-block;
+    padding: 8px 12px;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.btn-chat:hover {
+    background: #0056b3;
+}
+
+.chat-unread-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    display: inline-block;
+    background: #dc3545;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    min-width: 18px;
+    text-align: center;
 }
 </style>
 

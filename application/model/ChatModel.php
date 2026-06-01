@@ -44,7 +44,7 @@ class ChatModel
     {
         $database = DatabaseFactory::getFactory()->getConnection();
 
-        $sql = "SELECT message_id, sender_id, recipient_id, message_text, message_timestamp 
+        $sql = "SELECT message_id, sender_id, recipient_id, message_text, message_timestamp, message_read 
                 FROM messages 
                 WHERE (sender_id = :user_id_1 AND recipient_id = :user_id_2) 
                    OR (sender_id = :user_id_2 AND recipient_id = :user_id_1)
@@ -57,6 +57,93 @@ class ChatModel
         ));
 
         return $query->fetchAll();
+    }
+
+    /**
+     * Get unread message count between two users
+     * @param int $sender_id id of the user who sent the message
+     * @param int $recipient_id id of the user who received the message
+     * @return int count of unread messages
+     */
+    public static function getUnreadMessagesCount($sender_id, $recipient_id)
+    {
+        if (!$sender_id || !$recipient_id) {
+            return 0;
+        }
+
+        $database = DatabaseFactory::getFactory()->getConnection();
+
+        $sql = "SELECT COUNT(*) as unread_count
+                FROM messages
+                WHERE sender_id = :sender_id 
+                AND recipient_id = :recipient_id 
+                AND message_read = 0";
+        
+        $query = $database->prepare($sql);
+        $query->execute(array(
+            ':sender_id' => $sender_id,
+            ':recipient_id' => $recipient_id
+        ));
+
+        $result = $query->fetch();
+        return $result ? $result->unread_count : 0;
+    }
+
+    /**
+     * Mark messages as read between two users
+     * @param int $sender_id id of the user who sent the message
+     * @param int $recipient_id id of the user who received the message
+     * @return bool feedback
+     */
+    public static function markMessagesAsRead($sender_id, $recipient_id)
+    {
+        if (!$sender_id || !$recipient_id) {
+            return false;
+        }
+
+        $database = DatabaseFactory::getFactory()->getConnection();
+
+        $sql = "UPDATE messages 
+                SET message_read = 1 
+                WHERE sender_id = :sender_id 
+                AND recipient_id = :recipient_id 
+                AND message_read = 0";
+        
+        $query = $database->prepare($sql);
+        return $query->execute(array(
+            ':sender_id' => $sender_id,
+            ':recipient_id' => $recipient_id
+        ));
+    }
+
+    /**
+     * Get all unread message counts for a user from all contacts
+     * @param int $user_id id of the user
+     * @return array array with user_id => unread_count
+     */
+    public static function getUnreadCountPerContact($user_id)
+    {
+        if (!$user_id) {
+            return array();
+        }
+
+        $database = DatabaseFactory::getFactory()->getConnection();
+
+        $sql = "SELECT sender_id, COUNT(*) as unread_count
+                FROM messages
+                WHERE recipient_id = :user_id 
+                AND message_read = 0
+                GROUP BY sender_id";
+        
+        $query = $database->prepare($sql);
+        $query->execute(array(':user_id' => $user_id));
+
+        $results = $query->fetchAll();
+        $unread_map = array();
+        foreach ($results as $row) {
+            $unread_map[$row->sender_id] = $row->unread_count;
+        }
+        return $unread_map;
     }
 
     /**
@@ -295,5 +382,123 @@ class ChatModel
         ));
 
         return ($query->rowCount() == 1);
+    }
+
+    /**
+     * Get count of unread messages in a group chat for a user
+     * @param int $group_chat_id id of the group chat
+     * @param int $user_id id of the user
+     * @return int count of unread messages
+     */
+    public static function getUnreadMessageCount($group_chat_id, $user_id)
+    {
+        if (!$group_chat_id || !$user_id) {
+            return 0;
+        }
+
+        $database = DatabaseFactory::getFactory()->getConnection();
+
+        $sql = "SELECT COUNT(*) as unread_count
+                FROM group_chat_messages
+                WHERE group_chat_id = :group_chat_id 
+                AND message_read = 0 
+                AND sender_id != :user_id";
+        
+        $query = $database->prepare($sql);
+        $query->execute(array(
+            ':group_chat_id' => $group_chat_id,
+            ':user_id' => $user_id
+        ));
+
+        $result = $query->fetch();
+        return $result ? $result->unread_count : 0;
+    }
+
+    /**
+     * Mark all messages in a group chat as read for a user
+     * @param int $group_chat_id id of the group chat
+     * @param int $user_id id of the user
+     * @return bool feedback
+     */
+    public static function markGroupMessagesAsRead($group_chat_id, $user_id)
+    {
+        if (!$group_chat_id || !$user_id) {
+            return false;
+        }
+
+        $database = DatabaseFactory::getFactory()->getConnection();
+
+        $sql = "UPDATE group_chat_messages 
+                SET message_read = 1 
+                WHERE group_chat_id = :group_chat_id 
+                AND sender_id != :user_id 
+                AND message_read = 0";
+        
+        $query = $database->prepare($sql);
+        return $query->execute(array(
+            ':group_chat_id' => $group_chat_id,
+            ':user_id' => $user_id
+        ));
+    }
+
+    /**
+     * Get total unread messages for a user across all groups
+     * @param int $user_id id of the user
+     * @return int total count of unread messages
+     */
+    public static function getTotalUnreadMessages($user_id)
+    {
+        if (!$user_id) {
+            return 0;
+        }
+
+        $database = DatabaseFactory::getFactory()->getConnection();
+
+        $sql = "SELECT COUNT(*) as total_unread
+                FROM group_chat_messages gcm
+                WHERE sender_id != :user_id 
+                AND message_read = 0 
+                AND gcm.group_chat_id IN (
+                    SELECT group_chat_id FROM group_chat_members WHERE user_id = :user_id
+                )";
+        
+        $query = $database->prepare($sql);
+        $query->execute(array(':user_id' => $user_id));
+
+        $result = $query->fetch();
+        return $result ? $result->total_unread : 0;
+    }
+
+    /**
+     * Get unread count per group for a user
+     * @param int $user_id id of the user
+     * @return array array with group_chat_id => unread_count
+     */
+    public static function getUnreadCountPerGroup($user_id)
+    {
+        if (!$user_id) {
+            return array();
+        }
+
+        $database = DatabaseFactory::getFactory()->getConnection();
+
+        $sql = "SELECT gcm.group_chat_id, COUNT(*) as unread_count
+                FROM group_chat_messages gcm
+                WHERE sender_id != :user_id 
+                AND message_read = 0 
+                AND gcm.group_chat_id IN (
+                    SELECT group_chat_id FROM group_chat_members WHERE user_id = :user_id
+                )
+                GROUP BY gcm.group_chat_id";
+        
+        $query = $database->prepare($sql);
+        $query->execute(array(':user_id' => $user_id));
+
+        $results = $query->fetchAll();
+        $unread_map = array();
+        foreach ($results as $row) {
+            $unread_map[$row->group_chat_id] = $row->unread_count;
+        }
+        return $unread_map;
     }
 }

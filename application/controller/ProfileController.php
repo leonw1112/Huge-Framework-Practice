@@ -16,9 +16,15 @@ class ProfileController extends Controller
      */
     public function index()
     {
+        $unread_counts = array();
+        if (Session::userIsLoggedIn()) {
+            $unread_counts = ChatModel::getUnreadCountPerContact(Session::get('user_id'));
+        }
+
         $this->View->render('profile/index', array(
-            'users' => UserModel::getPublicProfilesOfAllUsers())
-        );
+            'users' => UserModel::getPublicProfilesOfAllUsers(),
+            'unread_counts' => $unread_counts
+        ));
     }
 
     /**

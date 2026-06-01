@@ -37,7 +37,12 @@
                 <?php foreach ($this->group_chats as $group) { ?>
                     <div class="group-chat-card">
                         <div class="group-chat-header">
-                            <h3><?= htmlspecialchars($group->group_chat_name); ?></h3>
+                            <div class="group-header-title">
+                                <h3><?= htmlspecialchars($group->group_chat_name); ?></h3>
+                                <?php if (isset($this->unread_counts[$group->group_chat_id]) && $this->unread_counts[$group->group_chat_id] > 0) { ?>
+                                    <span class="unread-badge"><?= $this->unread_counts[$group->group_chat_id]; ?></span>
+                                <?php } ?>
+                            </div>
                             <span class="member-count"><?= $group->member_count; ?> Mitglieder</span>
                         </div>
                         
@@ -191,11 +196,29 @@
     margin-bottom: 10px;
 }
 
+.group-header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .group-chat-header h3 {
     margin: 0;
     color: #333;
     font-size: 16px;
     flex: 1;
+}
+
+.unread-badge {
+    display: inline-block;
+    background: #dc3545;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
 }
 
 .member-count {
