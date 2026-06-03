@@ -25,11 +25,11 @@ class ChatController extends Controller
         // Get the other user's information
         $other_user = UserModel::getPublicProfileOfUser($user_id);
 
-        // Mark all messages from the other user as read
-        ChatModel::markMessagesAsRead($user_id, Session::get('user_id'));
+        // Mark all messages from the other user as read using stored procedure
+        ChatStoredProcedures::markMessagesAsRead($user_id, Session::get('user_id'));
 
-        // Get all messages between the logged-in user and the other user
-        $messages = ChatModel::getMessagesBetweenUsers(Session::get('user_id'), $user_id);
+        // Get all messages between the logged-in user and the other user using stored procedure
+        $messages = ChatStoredProcedures::getMessagesBetweenUsers(Session::get('user_id'), $user_id);
 
         // Pass the user information and messages to the view
         $this->View->render('chat/index', array(
@@ -57,8 +57,8 @@ class ChatController extends Controller
             Redirect::to('chat/index/' . $recipient_id);
         }
 
-        // Save the message to the database
-        ChatModel::sendMessage(Session::get('user_id'), $recipient_id, $message_text);
+        // Save the message to the database using stored procedure
+        ChatStoredProcedures::sendMessage(Session::get('user_id'), $recipient_id, $message_text);
 
         Redirect::to('chat/index/' . $recipient_id);
     }
@@ -68,8 +68,9 @@ class ChatController extends Controller
      */
     public function groupChats()
     {
-        $group_chats = ChatModel::getUserGroupChats(Session::get('user_id'));
-        $unread_counts = ChatModel::getUnreadCountPerGroup(Session::get('user_id'));
+        // Get all group chats and unread counts using stored procedures
+        $group_chats = ChatStoredProcedures::getUserGroupChats(Session::get('user_id'));
+        $unread_counts = ChatStoredProcedures::getUnreadCountPerGroup(Session::get('user_id'));
 
         $this->View->render('chat/groupChats', array(
             'group_chats' => $group_chats,
@@ -83,17 +84,18 @@ class ChatController extends Controller
      */
     public function groupChat($group_chat_id)
     {
-        // Check if user is member of this group
-        if (!ChatModel::isGroupMember($group_chat_id, Session::get('user_id'))) {
+        // Check if user is member of this group using stored procedure
+        if (!ChatStoredProcedures::isGroupMember($group_chat_id, Session::get('user_id'))) {
             Redirect::to('chat/groupChats');
         }
 
-        // Mark all messages in this group as read for the current user
-        ChatModel::markGroupMessagesAsRead($group_chat_id, Session::get('user_id'));
+        // Mark all messages in this group as read for the current user using stored procedure
+        ChatStoredProcedures::markGroupMessagesAsRead($group_chat_id, Session::get('user_id'));
 
-        $group_chat = ChatModel::getGroupChatDetails($group_chat_id);
-        $messages = ChatModel::getGroupChatMessages($group_chat_id);
-        $members = ChatModel::getGroupMembers($group_chat_id);
+        // Get group details, messages and members using stored procedures
+        $group_chat = ChatStoredProcedures::getGroupChatDetails($group_chat_id);
+        $messages = ChatStoredProcedures::getGroupChatMessages($group_chat_id);
+        $members = ChatStoredProcedures::getGroupMembers($group_chat_id);
 
         $this->View->render('chat/groupChat', array(
             'group_chat' => $group_chat,
@@ -121,12 +123,10 @@ class ChatController extends Controller
             Redirect::to('chat/groupChats');
         }
 
-        // Create the group
-        $group_id = ChatModel::createGroupChat($group_name, $group_description, Session::get('user_id'));
+        // Create the group using stored procedure (creator is added automatically)
+        $group_id = ChatStoredProcedures::createGroupChat($group_name, $group_description, Session::get('user_id'));
 
         if ($group_id) {
-            // Add creator as member
-            ChatModel::addMemberToGroup($group_id, Session::get('user_id'));
             Redirect::to('chat/groupChat/' . $group_id);
         } else {
             Redirect::to('chat/groupChats');
@@ -148,8 +148,8 @@ class ChatController extends Controller
         $group_chat_id = Request::post('group_chat_id');
         $message_text = Request::post('message_text');
 
-        // Check if user is member of this group
-        if (!ChatModel::isGroupMember($group_chat_id, Session::get('user_id'))) {
+        // Check if user is member of this group using stored procedure
+        if (!ChatStoredProcedures::isGroupMember($group_chat_id, Session::get('user_id'))) {
             Redirect::to('chat/groupChats');
         }
 
@@ -158,8 +158,8 @@ class ChatController extends Controller
             Redirect::to('chat/groupChat/' . $group_chat_id);
         }
 
-        // Save the message to the database
-        ChatModel::sendGroupMessage($group_chat_id, Session::get('user_id'), $message_text);
+        // Save the message to the database using stored procedure
+        ChatStoredProcedures::sendGroupMessage($group_chat_id, Session::get('user_id'), $message_text);
 
         Redirect::to('chat/groupChat/' . $group_chat_id);
     }
@@ -179,16 +179,17 @@ class ChatController extends Controller
         $group_chat_id = Request::post('group_chat_id');
         $user_id = Request::post('user_id');
 
-        $group_chat = ChatModel::getGroupChatDetails($group_chat_id);
+        // Get group details using stored procedure
+        $group_chat = ChatStoredProcedures::getGroupChatDetails($group_chat_id);
 
         // Check if user is creator
         if ($group_chat->created_by != Session::get('user_id')) {
             Redirect::to('chat/groupChat/' . $group_chat_id);
         }
 
-        // Check if user is not already member
-        if (!ChatModel::isGroupMember($group_chat_id, $user_id)) {
-            ChatModel::addMemberToGroup($group_chat_id, $user_id);
+        // Check if user is not already member using stored procedure
+        if (!ChatStoredProcedures::isGroupMember($group_chat_id, $user_id)) {
+            ChatStoredProcedures::addMemberToGroup($group_chat_id, $user_id);
         }
 
         Redirect::to('chat/groupChat/' . $group_chat_id);
@@ -209,14 +210,16 @@ class ChatController extends Controller
         $group_chat_id = Request::post('group_chat_id');
         $user_id_to_remove = Request::post('user_id_to_remove');
 
-        $group_chat = ChatModel::getGroupChatDetails($group_chat_id);
+        // Get group details using stored procedure
+        $group_chat = ChatStoredProcedures::getGroupChatDetails($group_chat_id);
 
         // Check if user is creator
         if ($group_chat->created_by != Session::get('user_id')) {
             Redirect::to('chat/groupChat/' . $group_chat_id);
         }
 
-        ChatModel::removeMemberFromGroup($group_chat_id, $user_id_to_remove);
+        // Remove member using stored procedure
+        ChatStoredProcedures::removeMemberFromGroup($group_chat_id, $user_id_to_remove);
 
         Redirect::to('chat/groupChat/' . $group_chat_id);
     }
@@ -234,8 +237,10 @@ class ChatController extends Controller
 
         $group_chat_id = Request::post('group_chat_id');
 
-        ChatModel::removeMemberFromGroup($group_chat_id, Session::get('user_id'));
+        // Remove current user from group using stored procedure
+        ChatStoredProcedures::removeMemberFromGroup($group_chat_id, Session::get('user_id'));
 
         Redirect::to('chat/groupChats');
     }
 }
+ 
