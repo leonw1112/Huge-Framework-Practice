@@ -47,6 +47,11 @@
                     } ?>>
                     <a href="<?php echo Config::get('URL'); ?>note/index">My Notes</a>
                 </li>
+                <li <?php if (View::checkForActiveController($filename, "gallery")) {
+                        echo ' class="active" ';
+                    } ?>>
+                    <a href="<?php echo Config::get('URL'); ?>gallery/index">Galerie</a>
+                </li>
             <?php } else { ?>
                 <!-- for not logged in users -->
                 <li <?php if (View::checkForActiveControllerAndAction($filename, "login/index")) {
