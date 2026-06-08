@@ -10,8 +10,8 @@
             <label>Bild auswählen: </label>
             <input type="file" name="image" accept="image/*" required />
             
-            <label>Beschreibung: </label>
-            <textarea name="description" placeholder="Beschreibung des Bildes (optional)"></textarea>
+            <label>Titel/Beschreibung: </label>
+            <input type="text" name="description" placeholder="Titel des Bildes" required />
             
             <input type="submit" value="Hochladen" autocomplete="off" />
             <a href="<?php echo Config::get('URL');?>gallery/index">Zurück zur Galerie</a>
