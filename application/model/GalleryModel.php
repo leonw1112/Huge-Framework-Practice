@@ -37,6 +37,21 @@ class GalleryModel
     }
 
     /**
+     * Get a single image by filename
+     * @param string $filename filename of the image
+     * @return object a single image object
+     */
+    public static function getImageByFilename($filename)
+    {
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $query = $database->prepare("SELECT gallery_id, user_id, filename, title, created_at 
+                                    FROM gallery 
+                                    WHERE filename = :filename");
+        $query->execute(array(':filename' => $filename));
+        return $query->fetch();
+    }
+
+    /**
      * Upload a new image
      * @param int $user_id the user who uploads
      * @param string $filename name of the uploaded file
@@ -72,7 +87,7 @@ class GalleryModel
         }
 
         // Delete the file from filesystem
-        $file_path = __DIR__ . '/../../public/uploads/' . $image->filename;
+        $file_path = __DIR__ . '/../../uploads/' . $image->filename;
         if (file_exists($file_path)) {
             unlink($file_path);
         }

@@ -1,5 +1,4 @@
 <div class="container">
-    <link rel="stylesheet" href="<?php echo Config::get('URL'); ?>css/style.css">
     <h1>Galerie</h1>
     <div class="box">
 
@@ -15,7 +14,7 @@
             <?php if (!empty($this->photos)) { ?>
                 <?php foreach ($this->photos as $photo) { ?>
                     <div class="gallery-item">
-                        <img src="<?php echo Config::get('URL'); ?>uploads/<?php echo htmlspecialchars($photo->filename); ?>" alt="<?php echo htmlspecialchars($photo->title); ?>" style="max-width: 350px; max-height: 350px;">
+                        <img src="<?php echo Config::get('URL'); ?>gallery/serve/<?php echo htmlspecialchars($photo->filename); ?>" alt="<?php echo htmlspecialchars($photo->title); ?>" style="max-width: 350px; max-height: 350px;">
                         <p style="font-size: 12px;"><?php echo htmlspecialchars($photo->title); ?></p>
                         <a href="<?php echo Config::get('URL'); ?>gallery/delete/<?php echo $photo->gallery_id; ?>" class="btn-delete" onclick="return confirm('Bild wirklich löschen?');" style="font-size: 12px;">Löschen</a>
                     </div>

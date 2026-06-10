@@ -1,0 +1,6 @@
+# Block all direct access to uploaded files
+# Files are now served through the GalleryController for security
+Require all denied
+
+# Also disable PHP execution in this folder as a defense-in-depth measure
+php_flag engine off

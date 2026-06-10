@@ -25,6 +25,47 @@ class GalleryController extends Controller
     }
 
     /**
+     * Serve an image securely - only the owner can access it
+     * @param string $filename filename of the image to serve
+     */
+    public function serve($filename)
+    {
+        $user_id = Session::get('user_id');
+        
+        // Verify ownership
+        $image = GalleryModel::getImageByFilename($filename);
+        
+        if (!$image || $image->user_id != $user_id) {
+            header('HTTP/1.0 403 Forbidden');
+            exit('Zugriff verweigert.');
+        }
+        
+        $file_path = __DIR__ . '/../../uploads/' . $filename;
+        
+        if (!file_exists($file_path)) {
+            header('HTTP/1.0 404 Not Found');
+            exit('Datei nicht gefunden.');
+        }
+        
+        // Get MIME type
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime_type = finfo_file($finfo, $file_path);
+        finfo_close($finfo);
+        
+        // Send headers to prevent caching and embedding
+        header('Content-Type: ' . $mime_type);
+        header('Content-Length: ' . filesize($file_path));
+        header('Content-Disposition: inline; filename="' . $filename . '"');
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, no-cache, must-revalidate');
+        header('Pragma: no-cache');
+        
+        // Output file and exit
+        readfile($file_path);
+        exit;
+    }
+
+    /**
      * Upload a new image to the gallery
      */
     public function upload()
@@ -55,7 +96,7 @@ class GalleryController extends Controller
             // Generate unique filename
             $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
             $filename = md5(uniqid() . time()) . '.' . $extension;
-            $upload_path = __DIR__ . '/../../public/uploads/';
+            $upload_path = __DIR__ . '/../../uploads/';
             
             // Create uploads directory if not exists
             if (!is_dir($upload_path)) {
