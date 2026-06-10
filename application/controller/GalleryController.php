@@ -16,26 +16,28 @@ class GalleryController extends Controller
     }
 
     /**
-     * Show all gallery images
+     * Show all gallery images (own + shared)
      */
     public function index()
     {
-        $this->View->photos = GalleryModel::getAllImages(Session::get('user_id'));
+        $user_id = Session::get('user_id');
+        $this->View->photos = GalleryModel::getAllImages($user_id);
+        $this->View->sharedPhotos = GalleryModel::getSharedImages($user_id);
         $this->View->render('gallery/index');
     }
 
     /**
-     * Serve an image securely - only the owner can access it
+     * Serve an image securely - owner or shared users can access it
      * @param string $filename filename of the image to serve
      */
     public function serve($filename)
     {
         $user_id = Session::get('user_id');
         
-        // Verify ownership
-        $image = GalleryModel::getImageByFilename($filename);
+        // Verify ownership or shared access
+        $image = GalleryModel::getImageIfAccessible($filename, $user_id);
         
-        if (!$image || $image->user_id != $user_id) {
+        if (!$image) {
             header('HTTP/1.0 403 Forbidden');
             exit('Zugriff verweigert.');
         }
@@ -63,6 +65,124 @@ class GalleryController extends Controller
         // Output file and exit
         readfile($file_path);
         exit;
+    }
+
+    /**
+     * Download an image - only the owner can download
+     * @param string $filename filename of the image to download
+     */
+    public function download($filename)
+    {
+        $user_id = Session::get('user_id');
+        
+        // Verify ownership strictly (only owner can download, not shared users)
+        $image = GalleryModel::getImageByFilename($filename);
+        
+        if (!$image || $image->user_id != $user_id) {
+            header('HTTP/1.0 403 Forbidden');
+            exit('Zugriff verweigert.');
+        }
+        
+        $file_path = __DIR__ . '/../../uploads/' . $filename;
+        
+        if (!file_exists($file_path)) {
+            header('HTTP/1.0 404 Not Found');
+            exit('Datei nicht gefunden.');
+        }
+        
+        // Get MIME type
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime_type = finfo_file($finfo, $file_path);
+        finfo_close($finfo);
+        
+        // Send download headers
+        header('Content-Type: ' . $mime_type);
+        header('Content-Length: ' . filesize($file_path));
+        header('Content-Disposition: attachment; filename="' . $image->title . '.' . pathinfo($filename, PATHINFO_EXTENSION) . '"');
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, no-cache, must-revalidate');
+        header('Pragma: no-cache');
+        
+        // Output file and exit
+        readfile($file_path);
+        exit;
+    }
+
+    /**
+     * Share an image with another user
+     * @param int $image_id id of the image to share
+     */
+    public function share($image_id)
+    {
+        $user_id = Session::get('user_id');
+        
+        // Verify ownership
+        $image = GalleryModel::getImage($image_id);
+        if (!$image || $image->user_id != $user_id) {
+            Session::add('feedback_negative', 'Du kannst nur eigene Bilder teilen.');
+            Redirect::to('gallery/index');
+        }
+        
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $share_with = trim($_POST['share_with_user_id']);
+            
+            if (empty($share_with) || !is_numeric($share_with)) {
+                Session::add('feedback_negative', 'Bitte eine gültige User-ID eingeben.');
+                Redirect::to('gallery/share/' . $image_id);
+            }
+            
+            $share_with_user_id = (int) $share_with;
+            
+            // Cannot share with yourself
+            if ($share_with_user_id == $user_id) {
+                Session::add('feedback_negative', 'Du kannst ein Bild nicht mit dir selbst teilen.');
+                Redirect::to('gallery/share/' . $image_id);
+            }
+            
+            // Check if user exists
+            $target_user = UserModel::getPublicProfileOfUser($share_with_user_id);
+            if (!$target_user) {
+                Session::add('feedback_negative', 'Der angegebene Benutzer existiert nicht.');
+                Redirect::to('gallery/share/' . $image_id);
+            }
+            
+            if (GalleryModel::shareImage($image_id, $user_id, $share_with_user_id)) {
+                Session::add('feedback_positive', 'Bild erfolgreich mit ' . htmlspecialchars($target_user->user_name) . ' geteilt!');
+            } else {
+                Session::add('feedback_negative', 'Fehler beim Teilen des Bildes.');
+            }
+            
+            Redirect::to('gallery/index');
+        }
+        
+        $this->View->image = $image;
+        $this->View->sharedUsers = GalleryModel::getSharedUsers($image_id, $user_id);
+        $this->View->render('gallery/share');
+    }
+
+    /**
+     * Unshare an image from a user
+     * @param int $image_id id of the image
+     * @param int $shared_with_user_id id of the user to unshare from
+     */
+    public function unshare($image_id, $shared_with_user_id)
+    {
+        $user_id = Session::get('user_id');
+        
+        // Verify ownership
+        $image = GalleryModel::getImage($image_id);
+        if (!$image || $image->user_id != $user_id) {
+            Session::add('feedback_negative', 'Zugriff verweigert.');
+            Redirect::to('gallery/index');
+        }
+        
+        if (GalleryModel::unshareImage($image_id, $user_id, $shared_with_user_id)) {
+            Session::add('feedback_positive', 'Freigabe erfolgreich entfernt.');
+        } else {
+            Session::add('feedback_negative', 'Fehler beim Entfernen der Freigabe.');
+        }
+        
+        Redirect::to('gallery/share/' . $image_id);
     }
 
     /**
