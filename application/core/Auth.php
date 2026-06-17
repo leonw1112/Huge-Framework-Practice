@@ -67,6 +67,72 @@ class Auth
     }
 
     /**
+     * Prüft, ob ein eingeloggter User Zugriff auf ein bestimmtes Feature hat.
+     * Wenn das Feature als 'protected' markiert ist, wird ein temporäres Recht
+     * via TemporaryPermissionModel geprüft. Bei fehlendem Recht wird ein
+     * Redirect auf die Startseite mit Fehlermeldung ausgelöst.
+     *
+     * @param string $feature_key z. B. 'gallery', 'chat', 'notes'
+     */
+    public static function checkFeatureAccess($feature_key)
+    {
+        // 1. Erst normaler Login-Check
+        self::checkAuthentication();
+
+        // 2. Wenn Feature nicht geschützt ist, Zugriff erlaubt
+        if (!FeatureRegistry::isProtected($feature_key)) {
+            return;
+        }
+
+        // 3. Feature ist geschützt -> temporäres Recht prüfen
+        $user_id = Session::get('user_id');
+        if (!TemporaryPermissionModel::hasPermission($user_id, $feature_key)) {
+            Session::add('feedback_negative', Text::get('FEEDBACK_FEATURE_ACCESS_DENIED'));
+            Redirect::home();
+            exit();
+        }
+    }
+
+    /**
+     * Boolean-Prüfung, ob der aktuelle User Zugriff auf ein Feature hat.
+     * Kein Redirect, kein exit() – rein für interne Abfragen in Views etc.
+     *
+     * @param string $feature_key
+     *
+     * @return bool
+     */
+    public static function hasFeatureAccess($feature_key)
+    {
+        if (!Session::userIsLoggedIn()) {
+            return false;
+        }
+
+        if (!FeatureRegistry::isProtected($feature_key)) {
+            return true;
+        }
+
+        return TemporaryPermissionModel::hasPermission(Session::get('user_id'), $feature_key);
+    }
+
+    /**
+     * Boolean-Prüfung, ob ein bestimmter User Zugriff auf ein Feature hat.
+     * Für Admin-Prüfungen oder wenn man nicht den aktuellen Session-User meint.
+     *
+     * @param int    $user_id
+     * @param string $feature_key
+     *
+     * @return bool
+     */
+    public static function userHasFeatureAccess($user_id, $feature_key)
+    {
+        if (!FeatureRegistry::isProtected($feature_key)) {
+            return true;
+        }
+
+        return TemporaryPermissionModel::hasPermission($user_id, $feature_key);
+    }
+
+    /**
      * Detects if there is concurrent session (i.e. another user logged in with the same current user credentials),
      * If so, then logout.
      */

@@ -74,4 +74,8 @@ return array(
     "FEEDBACK_COOKIE_LOGIN_SUCCESSFUL" => "You were successfully logged in via the remember-me-cookie.",
     "FEEDBACK_USER_GROUP_CHANGE_SUCCESSFUL" => "Benutzergruppe wurde erfolgreich geändert.",
     "FEEDBACK_USER_GROUP_SELF_CHANGE_DENIED" => "Du kannst deine eigene Admin-Gruppe nicht ändern.",
+    "FEEDBACK_FEATURE_ACCESS_DENIED" => "Du hast keinen Zugriff auf dieses Feature oder dein temporäres Recht ist abgelaufen.",
+    "FEEDBACK_TEMPORARY_PERMISSION_GRANTED" => "Temporäres Recht wurde erfolgreich erteilt.",
+    "FEEDBACK_TEMPORARY_PERMISSION_REVOKED" => "Temporäres Recht wurde erfolgreich entzogen.",
+    "FEEDBACK_TEMPORARY_PERMISSION_NOT_FOUND" => "Temporäres Recht nicht gefunden.",
 );
