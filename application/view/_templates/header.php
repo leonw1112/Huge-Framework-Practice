@@ -120,6 +120,16 @@
                             } ?>>
                             <a href="<?php echo Config::get('URL'); ?>admin/users">Benutzerverwaltung</a>
                         </li>
+                        <li <?php if (View::checkForActiveController($filename, "admin")) {
+                                echo ' class="active" ';
+                            } ?>>
+                            <a href="<?php echo Config::get('URL'); ?>admin/permissions">Temporäre Rechte</a>
+                        </li>
+                        <li <?php if (View::checkForActiveController($filename, "admin")) {
+                                echo ' class="active" ';
+                            } ?>>
+                            <a href="<?php echo Config::get('URL'); ?>admin/features">Feature-Schutz</a>
+                        </li>
                     </ul>
                 </li>
             <?php endif; ?>

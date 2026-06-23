@@ -68,4 +68,112 @@ class AdminController extends Controller
 
         Redirect::to('admin/users');
     }
-}
+
+    /**
+     * Admin-Ansicht: Übersicht aller temporären Rechte
+     */
+    public function permissions()
+    {
+        Auth::checkAdminAuthentication();
+
+        $this->View->render('admin/permissions', array(
+            'permissions' => TemporaryPermissionModel::getAllPermissions(),
+            'users' => UserModel::getPublicProfilesOfAllUsers(),
+            'features' => FeatureRegistry::getAllFeatures()
+        ));
+    }
+
+    /**
+     * Admin-Aktion: Temporäres Recht für einen User vergeben
+     */
+    public function grantPermission_action()
+    {
+        Auth::checkAdminAuthentication();
+
+        if (!Csrf::isTokenValid()) {
+            LoginModel::logout();
+            Redirect::home();
+            exit();
+        }
+
+        if (Request::post('user_id') && Request::post('feature_key') && Request::post('duration_hours')) {
+            $duration = (int) Request::post('duration_hours') * 3600; // Stunden in Sekunden
+            $permission_id = TemporaryPermissionModel::grantPermission(
+                Request::post('user_id'),
+                Request::post('feature_key'),
+                $duration,
+                Session::get('user_id')
+            );
+
+            if ($permission_id) {
+                Session::add('feedback_positive', Text::get('FEEDBACK_TEMPORARY_PERMISSION_GRANTED'));
+            } else {
+                Session::add('feedback_negative', Text::get('FEEDBACK_UNKNOWN_ERROR'));
+            }
+        }
+
+        Redirect::to('admin/permissions');
+    }
+
+    /**
+     * Admin-Aktion: Temporäres Recht entziehen (soft-revoke)
+     */
+    public function revokePermission_action()
+    {
+        Auth::checkAdminAuthentication();
+
+        if (!Csrf::isTokenValid()) {
+            LoginModel::logout();
+            Redirect::home();
+            exit();
+        }
+
+        if (Request::post('permission_id')) {
+            $success = TemporaryPermissionModel::revokePermission(Request::post('permission_id'));
+
+            if ($success) {
+                Session::add('feedback_positive', Text::get('FEEDBACK_TEMPORARY_PERMISSION_REVOKED'));
+            } else {
+                Session::add('feedback_negative', Text::get('FEEDBACK_TEMPORARY_PERMISSION_NOT_FOUND'));
+            }
+        }
+
+        Redirect::to('admin/permissions');
+    }
+
+    /**
+     * Admin-Ansicht: Feature-Registry Übersicht
+     */
+    public function features()
+    {
+        Auth::checkAdminAuthentication();
+
+        $this->View->render('admin/features', array(
+            'features' => FeatureRegistry::getAllFeatures()
+        ));
+    }
+
+    /**
+     * Admin-Aktion: Feature-Schutz toggeln
+     */
+    public function toggleFeatureProtection_action()
+    {
+        Auth::checkAdminAuthentication();
+
+        if (!Csrf::isTokenValid()) {
+            LoginModel::logout();
+            Redirect::home();
+            exit();
+        }
+
+        if (Request::post('feature_key') && Request::post('protected') !== null) {
+            FeatureRegistry::setProtected(
+                Request::post('feature_key'),
+                Request::post('protected') == '1'
+            );
+            Session::add('feedback_positive', Text::get('FEEDBACK_FEATURE_PROTECTION_UPDATED'));
+        }
+
+        Redirect::to('admin/features');
+    }
+

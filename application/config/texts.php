@@ -78,4 +78,5 @@ return array(
     "FEEDBACK_TEMPORARY_PERMISSION_GRANTED" => "Temporäres Recht wurde erfolgreich erteilt.",
     "FEEDBACK_TEMPORARY_PERMISSION_REVOKED" => "Temporäres Recht wurde erfolgreich entzogen.",
     "FEEDBACK_TEMPORARY_PERMISSION_NOT_FOUND" => "Temporäres Recht nicht gefunden.",
+    "FEEDBACK_FEATURE_PROTECTION_UPDATED" => "Feature-Schutz wurde erfolgreich aktualisiert.",
 );
