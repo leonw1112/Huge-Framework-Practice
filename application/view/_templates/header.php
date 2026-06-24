@@ -58,13 +58,6 @@
                     <a href="<?php echo Config::get('URL'); ?>gallery/index">Galerie</a>
                 </li>
                 <?php } ?>
-                <?php if (Auth::hasFeatureAccess('chat')) { ?>
-                <li <?php if (View::checkForActiveController($filename, "chat")) {
-                        echo ' class="active" ';
-                    } ?>>
-                    <a href="<?php echo Config::get('URL'); ?>chat/groupChats">Chat</a>
-                </li>
-                <?php } ?>
             <?php } else { ?>
                 <!-- for not logged in users -->
                 <li <?php if (View::checkForActiveControllerAndAction($filename, "login/index")) {
