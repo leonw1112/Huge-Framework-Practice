@@ -79,7 +79,12 @@ class Auth
         // 1. Erst normaler Login-Check
         self::checkAuthentication();
 
-        // 2. Wenn Feature nicht geschützt ist, Zugriff erlaubt
+        // 2. Admins haben immer Zugriff – egal ob geschützt oder nicht
+        if (Session::get('user_account_type') == 7) {
+            return;
+        }
+
+        // 3. Wenn Feature nicht geschützt ist, Zugriff erlaubt
         if (!FeatureRegistry::isProtected($feature_key)) {
             return;
         }
@@ -96,6 +101,7 @@ class Auth
     /**
      * Boolean-Prüfung, ob der aktuelle User Zugriff auf ein Feature hat.
      * Kein Redirect, kein exit() – rein für interne Abfragen in Views etc.
+     * Admins haben immer Zugriff.
      *
      * @param string $feature_key
      *
@@ -105,6 +111,11 @@ class Auth
     {
         if (!Session::userIsLoggedIn()) {
             return false;
+        }
+
+        // Admins haben immer Zugriff
+        if (Session::get('user_account_type') == 7) {
+            return true;
         }
 
         if (!FeatureRegistry::isProtected($feature_key)) {
@@ -117,6 +128,7 @@ class Auth
     /**
      * Boolean-Prüfung, ob ein bestimmter User Zugriff auf ein Feature hat.
      * Für Admin-Prüfungen oder wenn man nicht den aktuellen Session-User meint.
+     * Admins haben immer Zugriff.
      *
      * @param int    $user_id
      * @param string $feature_key
@@ -125,6 +137,10 @@ class Auth
      */
     public static function userHasFeatureAccess($user_id, $feature_key)
     {
+        // Wir können hier nicht direkt prüfen, ob $user_id ein Admin ist,
+        // da wir nur die ID haben. Für den Admin-Override im Header nutzen
+        // wir hasFeatureAccess(), das auf Session prüft.
+
         if (!FeatureRegistry::isProtected($feature_key)) {
             return true;
         }
