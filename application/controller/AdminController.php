@@ -177,3 +177,4 @@ class AdminController extends Controller
         Redirect::to('admin/features');
     }
 
+}

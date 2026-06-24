@@ -13,7 +13,7 @@ class ChatController extends Controller
         parent::__construct();
 
         // Only logged-in users can access chat
-        Auth::checkAuthentication();
+        Auth::checkFeatureAccess('chat');
     }
 
     /**

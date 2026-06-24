@@ -37,21 +37,34 @@
                 <a href="<?php echo Config::get('URL'); ?>profile/index">Profiles</a>
             </li>
             <?php if (Session::userIsLoggedIn()) { ?>
+                <?php if (Auth::hasFeatureAccess('dashboard')) { ?>
                 <li <?php if (View::checkForActiveController($filename, "dashboard")) {
                         echo ' class="active" ';
                     } ?>>
                     <a href="<?php echo Config::get('URL'); ?>dashboard/index">Dashboard</a>
                 </li>
+                <?php } ?>
+                <?php if (Auth::hasFeatureAccess('notes')) { ?>
                 <li <?php if (View::checkForActiveController($filename, "note")) {
                         echo ' class="active" ';
                     } ?>>
                     <a href="<?php echo Config::get('URL'); ?>note/index">My Notes</a>
                 </li>
+                <?php } ?>
+                <?php if (Auth::hasFeatureAccess('gallery')) { ?>
                 <li <?php if (View::checkForActiveController($filename, "gallery")) {
                         echo ' class="active" ';
                     } ?>>
                     <a href="<?php echo Config::get('URL'); ?>gallery/index">Galerie</a>
                 </li>
+                <?php } ?>
+                <?php if (Auth::hasFeatureAccess('chat')) { ?>
+                <li <?php if (View::checkForActiveController($filename, "chat")) {
+                        echo ' class="active" ';
+                    } ?>>
+                    <a href="<?php echo Config::get('URL'); ?>chat/groupChats">Chat</a>
+                </li>
+                <?php } ?>
             <?php } else { ?>
                 <!-- for not logged in users -->
                 <li <?php if (View::checkForActiveControllerAndAction($filename, "login/index")) {
@@ -101,6 +114,11 @@
                                 echo ' class="active" ';
                             } ?>>
                             <a href="<?php echo Config::get('URL'); ?>user/changePassword">Change Password</a>
+                        </li>
+                        <li <?php if (View::checkForActiveController($filename, "user")) {
+                                echo ' class="active" ';
+                            } ?>>
+                            <a href="<?php echo Config::get('URL'); ?>user/myPermissions">Meine Rechte</a>
                         </li>
                         <li <?php if (View::checkForActiveController($filename, "login")) {
                                 echo ' class="active" ';

@@ -156,6 +156,16 @@ class UserController extends Controller
     }
 
     /**
+     * Zeigt die eigenen temporären Rechte des eingeloggten Users
+     */
+    public function myPermissions()
+    {
+        $this->View->render('user/myPermissions', array(
+            'permissions' => TemporaryPermissionModel::getUserPermissions(Session::get('user_id'), true)
+        ));
+    }
+
+    /**
      * Öffentliche Ansicht: Alle Benutzer/Gruppen als Liste
      * Keine Bearbeitung möglich – nur Ansicht
      */
