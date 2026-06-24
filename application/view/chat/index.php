@@ -45,7 +45,7 @@
 
                 <!-- Nachrichteneingabe -->
                 <div class="chat-input-section">
-                    <form method="POST" action="<?= Config::get('URL') . 'chat/sendMessage'; ?>" class="chat-form">
+                    <form method="POST" action="<?= Config::get('URL') . 'chat/sendMessage/'; ?>" class="chat-form">
                         <?php if (Session::userIsLoggedIn()) { ?>
                             <input type="hidden" name="recipient_id" value="<?= $this->other_user->user_id; ?>" />
                             
