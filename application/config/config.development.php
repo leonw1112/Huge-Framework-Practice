@@ -121,6 +121,11 @@ return array(
     'ENCRYPTION_KEY' => '6#x0gÊìf^25cL1f$08&',
     'HMAC_SALT' => '8qk9c^4L6d#15tM8z7n0%',
     /**
+     * Configuration for: Google reCAPTCHA v2
+     */
+    'RECAPTCHA_SITE_KEY' => 'Placeholder',
+    'RECAPTCHA_SECRET_KEY' => 'Placeholder',
+    /**
      * Configuration for: Email server credentials
      *
      * Here you can define how you want to send emails.

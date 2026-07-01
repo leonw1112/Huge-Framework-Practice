@@ -231,6 +231,10 @@ body {
 .login-box :-ms-input-placeholder { color: #777; opacity: 0.5; }
 .login-box input:-moz-placeholder { color: #777; opacity: 0.5; }
 
+.login-box .g-recaptcha {
+    margin: 10px 0;
+}
+
 .register-box {
     display: table-cell;
     color: #fff;

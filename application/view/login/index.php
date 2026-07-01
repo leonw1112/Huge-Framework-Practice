@@ -16,6 +16,7 @@
                         <input type="checkbox" name="set_remember_me_cookie" class="remember-me-checkbox" />
                         Remember me for 2 weeks
                     </label>
+                    <div class="g-recaptcha" data-sitekey="<?php echo Config::get('RECAPTCHA_SITE_KEY'); ?>"></div>
                     <!-- when a user navigates to a page that's only accessible for logged a logged-in user, then
                          the user is sent to this page here, also having the page he/she came from in the URL parameter
                          (have a look). This "where did you came from" value is put into this form to sent the user back
@@ -34,6 +35,7 @@
 					<input type="hidden" name="csrf_token" value="<?= Csrf::makeToken(); ?>" />
                     <input type="submit" class="login-submit-button" value="Log in"/>
                 </form>
+                <script src="https://www.google.com/recaptcha/api.js" async defer></script>
                 <div class="link-forgot-my-password">
                     <a href="<?php echo Config::get('URL'); ?>login/requestPasswordReset">I forgot my password</a>
                 </div>

@@ -4,3 +4,5 @@
 /uploads
 # don't commit all the dependencies fetched via Composer
 /vendor/
+application/config/config.development.php
+
